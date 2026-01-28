@@ -106,9 +106,23 @@ class MainActivity : AppCompatActivity() {
         val totalSpots: Int,
         var availableSpots: Int,
         val address: String,
-        var isNearest: Boolean = false
+        var isNearest: Boolean = false,
+        val hasChargingStation: Boolean = false,
+        val totalChargingSpots: Int = 0,
+        var availableChargingSpots: Int = 0
     )
+    
+    data class ChargingRequest(
+        val vehicleId: String,
+        val userLat: Double,
+        val userLon: Double,
+        val timestamp: Long,
+        val distanceToStation: Double
+    )
+    
     private var currentNearestParking: ParkingLot? = null
+    private val chargingRequestQueue = mutableListOf<ChargingRequest>()
+    private var currentNearestChargingStation: ParkingLot? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -172,23 +186,26 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun initializeParkingLots() {
-        // Bãi đỗ xe tại khu vực Bắc Từ Liêm, Hà Nội
-        parkingLots.add(ParkingLot(1, "Bãi đỗ xe Big C Thăng Long", 21.007235, 105.793757, 150, 45, "222 Trần Duy Hưng, Trung Hoà, Cầu Giấy"))
-        parkingLots.add(ParkingLot(2, "Bãi đỗ xe Aeon Mall Hà Đông", 20.989667, 105.751850, 200, 78, "Số 27 Cổ Linh, Long Biên"))
-        parkingLots.add(ParkingLot(3, "Bãi đỗ xe Mỹ Đình Plaza", 21.030715, 105.775943, 120, 23, "Mỹ Đình 2, Nam Từ Liêm"))
-        parkingLots.add(ParkingLot(4, "Bãi đỗ xe Vincom Trần Duy Hưng", 21.007126,  105.795478, 180, 92, "119 Trần Duy Hưng, Trung Hoà, Cầu Giấy"))
-        parkingLots.add(ParkingLot(5, "Bãi đỗ xe Keangnam Landmark", 21.018449, 105.783905, 250, 134, "Phạm Hùng, Nam Từ Liêm"))
-        parkingLots.add(ParkingLot(6, "Bãi đỗ xe Lotte Center", 21.031870, 105.811739, 300, 67, "54 Liễu Giai, Ba Đình"))
-        parkingLots.add(ParkingLot(7, "Bãi đỗ xe Mipec Long Biên", 21.045422, 105.865876, 100, 8, "229 Tây Sơn, Đống Đa"))
-        parkingLots.add(ParkingLot(8, "Bãi đỗ xe Royal City", 21.002899, 105.815364, 280, 156, "72A Nguyễn Trãi, Thanh Xuân"))
+        // Bãi đỗ xe tại khu vực Bắc Từ Liêm, Hà Nội với trạm sạc xe điện
+        parkingLots.add(ParkingLot(1, "Bãi đỗ xe Big C Thăng Long", 21.007235, 105.793757, 150, 45, "222 Trần Duy Hưng, Trung Hoà, Cầu Giấy", hasChargingStation = true, totalChargingSpots = 8, availableChargingSpots = 3))
+        parkingLots.add(ParkingLot(2, "Bãi đỗ xe Aeon Mall Hà Đông", 20.989667, 105.751850, 200, 78, "Số 27 Cổ Linh, Long Biên", hasChargingStation = true, totalChargingSpots = 10, availableChargingSpots = 5))
+        parkingLots.add(ParkingLot(3, "Bãi đỗ xe Mỹ Đình Plaza", 21.030715, 105.775943, 120, 23, "Mỹ Đình 2, Nam Từ Liêm", hasChargingStation = false))
+        parkingLots.add(ParkingLot(4, "Bãi đỗ xe Vincom Trần Duy Hưng", 21.007126,  105.795478, 180, 92, "119 Trần Duy Hưng, Trung Hoà, Cầu Giấy", hasChargingStation = true, totalChargingSpots = 6, availableChargingSpots = 2))
+        parkingLots.add(ParkingLot(5, "Bãi đỗ xe Keangnam Landmark", 21.018449, 105.783905, 250, 134, "Phạm Hùng, Nam Từ Liêm", hasChargingStation = true, totalChargingSpots = 12, availableChargingSpots = 8))
+        parkingLots.add(ParkingLot(6, "Bãi đỗ xe Lotte Center", 21.031870, 105.811739, 300, 67, "54 Liễu Giai, Ba Đình", hasChargingStation = true, totalChargingSpots = 15, availableChargingSpots = 0))
+        parkingLots.add(ParkingLot(7, "Bãi đỗ xe Mipec Long Biên", 21.045422, 105.865876, 100, 8, "229 Tây Sơn, Đống Đa", hasChargingStation = false))
+        parkingLots.add(ParkingLot(8, "Bãi đỗ xe Royal City", 21.002899, 105.815364, 280, 156, "72A Nguyễn Trãi, Thanh Xuân", hasChargingStation = true, totalChargingSpots = 10, availableChargingSpots = 7))
         parkingLots.add(ParkingLot(
-            id = 9,  // ID mới, tăng dần từ cái cuối cùng (nếu trước có 8 thì dùng 9)
+            id = 9,
             name = "Bãi đỗ xe Khu A - ĐH Mỏ Địa chất",
             lat = 21.071494,
             lon = 105.773825,
             totalSpots = 120,
             availableSpots = 50,
-            address = "Khu A, Trường ĐH Mỏ - Địa chất, Phố Viên, Bắc Từ Liêm, Hà Nội"
+            address = "Khu A, Trường ĐH Mỏ - Địa chất, Phố Viên, Bắc Từ Liêm, Hà Nội",
+            hasChargingStation = true,
+            totalChargingSpots = 20,
+            availableChargingSpots = 12
         ))
     }
 
@@ -206,12 +223,20 @@ class MainActivity : AppCompatActivity() {
                     parking.availableSpots < 10 -> "Còn ${parking.availableSpots} chỗ"
                     else -> "Còn ${parking.availableSpots} chỗ"
                 }
+                
+                val chargingInfo = if (parking.hasChargingStation) {
+                    when {
+                        parking.availableChargingSpots == 0 -> "⚡ Hết chỗ sạc"
+                        parking.availableChargingSpots < 3 -> "⚡ Còn ${parking.availableChargingSpots} chỗ sạc"
+                        else -> "⚡ Còn ${parking.availableChargingSpots}/${parking.totalChargingSpots} chỗ sạc"
+                    }
+                } else ""
 
                 val distanceText = myLocationOverlay?.myLocation?.let { loc ->
                     "• " + formatDistance(calculateDistance(loc.latitude, loc.longitude, parking.lat, parking.lon))
                 } ?: ""
 
-                snippet = "$availability $distanceText\n${parking.address}"
+                snippet = "$availability $distanceText\n$chargingInfo\n${parking.address}"
 
                 setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
 
@@ -221,6 +246,9 @@ class MainActivity : AppCompatActivity() {
                     }
                     parking.isNearest -> {
                         resources.getDrawable(android.R.drawable.btn_star_big_on, null)  // Ngôi sao cho bãi gần nhất
+                    }
+                    parking.hasChargingStation && parking.availableChargingSpots > 0 -> {
+                        resources.getDrawable(android.R.drawable.ic_menu_compass, null)  // Icon đặc biệt cho trạm sạc
                     }
                     parking.availableSpots == 0 -> resources.getDrawable(android.R.drawable.ic_dialog_alert, null)
                     parking.availableSpots < 10 -> resources.getDrawable(android.R.drawable.ic_dialog_info, null)
@@ -269,9 +297,21 @@ class MainActivity : AppCompatActivity() {
             parking.availableSpots < 10 -> "Sắp đầy (${parking.availableSpots}/${parking.totalSpots})"
             else -> "Còn ${parking.availableSpots}/${parking.totalSpots} chỗ"
         }
+        
+        val chargingAvailability = if (parking.hasChargingStation) {
+            when {
+                parking.availableChargingSpots == 0 -> " • ⚡ Hết chỗ sạc"
+                parking.availableChargingSpots < 3 -> " • ⚡ Còn ${parking.availableChargingSpots} chỗ sạc"
+                else -> " • ⚡ Còn ${parking.availableChargingSpots}/${parking.totalChargingSpots} chỗ sạc"
+            }
+        } else ""
 
-        tvPlaceRating.text = availability
-        tvPlaceCategory.text = "Bãi đỗ xe • ${parking.totalSpots} chỗ tổng"
+        tvPlaceRating.text = availability + chargingAvailability
+        tvPlaceCategory.text = if (parking.hasChargingStation) {
+            "Bãi đỗ xe • ${parking.totalSpots} chỗ tổng • Có trạm sạc điện"
+        } else {
+            "Bãi đỗ xe • ${parking.totalSpots} chỗ tổng"
+        }
 
         myLocationOverlay?.myLocation?.let { myLoc ->
             val distance = calculateDistance(myLoc.latitude, myLoc.longitude, parking.lat, parking.lon)
@@ -285,7 +325,11 @@ class MainActivity : AppCompatActivity() {
 
         btnBookParking.visibility = View.VISIBLE
         btnBookParking.setOnClickListener {
-            bookParkingSpot(parking)
+            if (parking.hasChargingStation) {
+                showChargingStationDialog(parking)
+            } else {
+                bookParkingSpot(parking)
+            }
         }
     }
 
@@ -298,8 +342,16 @@ class MainActivity : AppCompatActivity() {
                     val change = Random.nextInt(-2, 4)
                     parking.availableSpots = (parking.availableSpots + change)
                         .coerceIn(0, parking.totalSpots)
+                    
+                    // Cập nhật chỗ sạc nếu có
+                    if (parking.hasChargingStation) {
+                        val chargingChange = Random.nextInt(-1, 3)
+                        parking.availableChargingSpots = (parking.availableChargingSpots + chargingChange)
+                            .coerceIn(0, parking.totalChargingSpots)
+                    }
                 }
                 displayParkingLots()
+                processChargingRequestQueue()
                 updateHandler.postDelayed(this, 10000) // 10 giây
             }
         }
@@ -364,6 +416,243 @@ class MainActivity : AppCompatActivity() {
                 "Đặt trước ngay để giữ chỗ nhé!"
 
         Toast.makeText(this, message, Toast.LENGTH_LONG).show()
+    }
+    
+    // ============ TÍNH NĂNG TRẠM SẠC XE ĐIỆN ============
+    
+    private fun showChargingStationDialog(parking: ParkingLot) {
+        val options = if (parking.availableChargingSpots > 0) {
+            arrayOf("Đặt chỗ đỗ thường", "Đặt chỗ sạc xe điện", "Tìm trạm sạc gần nhất")
+        } else {
+            arrayOf("Đặt chỗ đỗ thường", "Tìm trạm sạc gần nhất (Trạm này đã đầy)")
+        }
+        
+        androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle("${parking.name}")
+            .setMessage("Bãi này có trạm sạc xe điện\n⚡ Còn ${parking.availableChargingSpots}/${parking.totalChargingSpots} chỗ sạc")
+            .setItems(options) { _, which ->
+                when (which) {
+                    0 -> bookParkingSpot(parking)
+                    1 -> {
+                        if (parking.availableChargingSpots > 0) {
+                            requestChargingSpot(parking)
+                        }
+                    }
+                    2 -> findNearestChargingStation()
+                }
+            }
+            .setNegativeButton("Hủy", null)
+            .show()
+    }
+    
+    private fun requestChargingSpot(parking: ParkingLot) {
+        myLocationOverlay?.myLocation?.let { myLoc ->
+            val distance = calculateDistance(myLoc.latitude, myLoc.longitude, parking.lat, parking.lon)
+            val vehicleId = "VEHICLE_${System.currentTimeMillis()}"
+            
+            val request = ChargingRequest(
+                vehicleId = vehicleId,
+                userLat = myLoc.latitude,
+                userLon = myLoc.longitude,
+                timestamp = System.currentTimeMillis(),
+                distanceToStation = distance
+            )
+            
+            // Thêm vào hàng đợi
+            chargingRequestQueue.add(request)
+            
+            // Sắp xếp theo khoảng cách (ưu tiên xe gần nhất)
+            chargingRequestQueue.sortBy { it.distanceToStation }
+            
+            // Xử lý yêu cầu
+            processChargingRequest(parking, request)
+            
+        } ?: Toast.makeText(this, "Bật GPS để đặt chỗ sạc", Toast.LENGTH_SHORT).show()
+    }
+    
+    private fun processChargingRequest(parking: ParkingLot, request: ChargingRequest) {
+        if (parking.availableChargingSpots <= 0) {
+            // Hết chỗ - gợi ý trạm khác
+            Toast.makeText(this, "Trạm sạc đã đầy! Đang tìm trạm thay thế...", Toast.LENGTH_SHORT).show()
+            suggestAlternativeChargingStations(request.userLat, request.userLon, parking)
+            return
+        }
+        
+        // Kiểm tra vị trí trong hàng đợi
+        val position = chargingRequestQueue.indexOf(request) + 1
+        val queueSize = chargingRequestQueue.size
+        
+        if (position == 1) {
+            // Xe gần nhất - được ưu tiên
+            parking.availableChargingSpots--
+            parking.availableSpots--
+            chargingRequestQueue.remove(request)
+            
+            Toast.makeText(this, 
+                "✅ ĐẶT CHỖ SẠC THÀNH CÔNG!\n" +
+                "Bạn được ưu tiên vì gần trạm nhất\n" +
+                "⚡ ${parking.name}\n" +
+                "Còn ${parking.availableChargingSpots} chỗ sạc",
+                Toast.LENGTH_LONG).show()
+                
+            displayParkingLots()
+            showParkingDetails(parking)
+        } else {
+            // Không phải xe gần nhất
+            Toast.makeText(this,
+                "⏳ Đã thêm vào hàng đợi (Vị trí: $position/$queueSize)\n" +
+                "Có ${position - 1} xe gần hơn đang được ưu tiên\n" +
+                "Khoảng cách của bạn: ${formatDistance(request.distanceToStation)}",
+                Toast.LENGTH_LONG).show()
+        }
+    }
+    
+    private fun processChargingRequestQueue() {
+        // Xử lý hàng đợi định kỳ
+        if (chargingRequestQueue.isEmpty()) return
+        
+        // Sắp xếp lại theo khoảng cách
+        chargingRequestQueue.sortBy { it.distanceToStation }
+        
+        // Tìm trạm sạc có chỗ trống
+        val availableStations = parkingLots.filter { 
+            it.hasChargingStation && it.availableChargingSpots > 0 
+        }
+        
+        if (availableStations.isEmpty()) return
+        
+        // Xử lý yêu cầu đầu tiên trong hàng đợi
+        val nextRequest = chargingRequestQueue.firstOrNull() ?: return
+        
+        // Tìm trạm gần nhất với yêu cầu này
+        val nearestStation = availableStations.minByOrNull { station ->
+            calculateDistance(nextRequest.userLat, nextRequest.userLon, station.lat, station.lon)
+        }
+        
+        nearestStation?.let { station ->
+            if (station.availableChargingSpots > 0) {
+                station.availableChargingSpots--
+                station.availableSpots--
+                chargingRequestQueue.removeAt(0)
+                displayParkingLots()
+            }
+        }
+    }
+    
+    private fun findNearestChargingStation() {
+        myLocationOverlay?.myLocation?.let { myLoc ->
+            val chargingStations = parkingLots.filter { 
+                it.hasChargingStation && it.availableChargingSpots > 0 
+            }
+            
+            if (chargingStations.isEmpty()) {
+                Toast.makeText(this, "Không có trạm sạc nào còn chỗ trống", Toast.LENGTH_LONG).show()
+                
+                // Hiển thị tất cả trạm sạc (kể cả đầy)
+                showAllChargingStations()
+                return
+            }
+            
+            val nearestStation = chargingStations.minByOrNull { station ->
+                calculateDistance(myLoc.latitude, myLoc.longitude, station.lat, station.lon)
+            }
+            
+            nearestStation?.let { station ->
+                val distance = calculateDistance(myLoc.latitude, myLoc.longitude, station.lat, station.lon)
+                
+                currentNearestChargingStation = station
+                
+                Toast.makeText(this,
+                    "⚡ TRẠM SẠC GẦN NHẤT\n" +
+                    "${station.name}\n" +
+                    "Còn ${station.availableChargingSpots}/${station.totalChargingSpots} chỗ sạc\n" +
+                    "Cách ${formatDistance(distance)}",
+                    Toast.LENGTH_LONG).show()
+                
+                // Zoom đến trạm sạc
+                map.controller.animateTo(GeoPoint(station.lat, station.lon))
+                map.controller.setZoom(16.0)
+                
+                showParkingDetails(station)
+            }
+        } ?: Toast.makeText(this, "Bật GPS để tìm trạm sạc", Toast.LENGTH_SHORT).show()
+    }
+    
+    private fun suggestAlternativeChargingStations(userLat: Double, userLon: Double, currentStation: ParkingLot) {
+        val alternativeStations = parkingLots
+            .filter { 
+                it.hasChargingStation && 
+                it.availableChargingSpots > 0 && 
+                it.id != currentStation.id 
+            }
+            .map { station ->
+                val distance = calculateDistance(userLat, userLon, station.lat, station.lon)
+                Pair(station, distance)
+            }
+            .sortedBy { it.second }
+            .take(3)
+        
+        if (alternativeStations.isEmpty()) {
+            Toast.makeText(this, 
+                "❌ Tất cả trạm sạc đều đã đầy!\n" +
+                "Vui lòng thử lại sau hoặc đặt chỗ đỗ thường",
+                Toast.LENGTH_LONG).show()
+            return
+        }
+        
+        // Tạo danh sách gợi ý
+        val suggestions = alternativeStations.mapIndexed { index, (station, distance) ->
+            "${index + 1}. ${station.name}\n" +
+            "   ⚡ Còn ${station.availableChargingSpots}/${station.totalChargingSpots} chỗ • " +
+            "Cách ${formatDistance(distance)}"
+        }.joinToString("\n\n")
+        
+        val message = "🔋 GỢI Ý TRẠM SẠC THAY THẾ:\n\n$suggestions"
+        
+        androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle("Trạm ${currentStation.name} đã đầy")
+            .setMessage(message)
+            .setPositiveButton("Xem trạm đầu tiên") { _, _ ->
+                alternativeStations.firstOrNull()?.let { (station, _) ->
+                    map.controller.animateTo(GeoPoint(station.lat, station.lon))
+                    map.controller.setZoom(16.0)
+                    showParkingDetails(station)
+                }
+            }
+            .setNeutralButton("Xem tất cả") { _, _ ->
+                showAllChargingStations()
+            }
+            .setNegativeButton("Đóng", null)
+            .show()
+    }
+    
+    private fun showAllChargingStations() {
+        myLocationOverlay?.myLocation?.let { myLoc ->
+            val allStations = parkingLots
+                .filter { it.hasChargingStation }
+                .map { station ->
+                    val distance = calculateDistance(myLoc.latitude, myLoc.longitude, station.lat, station.lon)
+                    Triple(station, distance, station.availableChargingSpots > 0)
+                }
+                .sortedBy { it.second }
+            
+            val stationList = allStations.mapIndexed { index, (station, distance, hasSpots) ->
+                val status = if (hasSpots) {
+                    "✅ Còn ${station.availableChargingSpots}/${station.totalChargingSpots} chỗ"
+                } else {
+                    "❌ Đã đầy (0/${station.totalChargingSpots})"
+                }
+                "${index + 1}. ${station.name}\n" +
+                "   $status • Cách ${formatDistance(distance)}"
+            }.joinToString("\n\n")
+            
+            androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("⚡ TẤT CẢ TRẠM SẠC XE ĐIỆN")
+                .setMessage(stationList)
+                .setPositiveButton("Đóng", null)
+                .show()
+                
+        } ?: Toast.makeText(this, "Bật GPS để xem danh sách", Toast.LENGTH_SHORT).show()
     }
 
     private fun showParkingNotification(parking: ParkingLot, distance: Double) {
@@ -601,6 +890,38 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun loadSuggestions(query: String) {
+        // Tìm trong danh sách bãi đỗ xe trước
+        val localMatches = parkingLots.filter { parking ->
+            parking.name.contains(query, ignoreCase = true) ||
+            parking.address.contains(query, ignoreCase = true)
+        }.map { parking ->
+            PlaceInfo(
+                parking.lat,
+                parking.lon,
+                parking.name + if (parking.hasChargingStation) " ⚡" else "",
+                parking.address,
+                "Bãi đỗ xe"
+            )
+        }
+        
+        // Nếu có kết quả local, hiển thị ngay
+        if (localMatches.isNotEmpty()) {
+            runOnUiThread {
+                suggestionsData.clear()
+                suggestionsData.addAll(localMatches)
+                
+                suggestionsAdapter.clear()
+                suggestionsAdapter.addAll(localMatches.map { it.name })
+                suggestionsAdapter.notifyDataSetChanged()
+                
+                if (searchBox.hasFocus()) {
+                    searchBox.showDropDown()
+                }
+            }
+            return
+        }
+        
+        // Nếu không có kết quả local, tìm trên mạng
         Thread {
             try {
                 val encoded = URLEncoder.encode(query, "UTF-8")
@@ -661,6 +982,46 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun searchLocation(query: String) {
+        // Kiểm tra xem có phải tìm trạm sạc không
+        val isChargingStationSearch = query.contains("sạc", ignoreCase = true) || 
+                                      query.contains("điện", ignoreCase = true) ||
+                                      query.contains("charging", ignoreCase = true)
+        
+        // Tìm trong danh sách bãi đỗ xe trước
+        val matchingParkingLots = parkingLots.filter { parking ->
+            parking.name.contains(query, ignoreCase = true) ||
+            parking.address.contains(query, ignoreCase = true)
+        }
+        
+        if (matchingParkingLots.isNotEmpty()) {
+            // Tìm thấy bãi đỗ xe
+            val parking = matchingParkingLots[0]
+            
+            runOnUiThread {
+                // Zoom đến bãi đỗ xe
+                map.controller.animateTo(GeoPoint(parking.lat, parking.lon))
+                map.controller.setZoom(17.0)
+                
+                // Hiển thị thông tin
+                showParkingDetails(parking)
+                
+                Toast.makeText(this, 
+                    "Tìm thấy: ${parking.name}" + 
+                    if (parking.hasChargingStation) " ⚡ (Có trạm sạc)" else "",
+                    Toast.LENGTH_LONG).show()
+            }
+            return
+        }
+        
+        // Nếu tìm "trạm sạc" hoặc "sạc xe điện"
+        if (isChargingStationSearch) {
+            runOnUiThread {
+                findNearestChargingStation()
+            }
+            return
+        }
+        
+        // Không tìm thấy trong danh sách → tìm trên mạng
         Toast.makeText(this, "Đang tìm kiếm...", Toast.LENGTH_SHORT).show()
 
         Thread {
