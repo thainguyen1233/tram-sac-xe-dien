@@ -1,6 +1,7 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
+    id("kotlin-kapt")
 }
 
 android {
@@ -35,7 +36,12 @@ dependencies {
     implementation("androidx.appcompat:appcompat:1.7.0")
     implementation("com.google.android.material:material:1.12.0")
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
+    val room_version = "2.6.1"
 
+    implementation("androidx.room:room-runtime:$room_version")
+    implementation("androidx.room:room-ktx:$room_version")
     implementation("org.osmdroid:osmdroid-android:6.1.18")
     implementation("androidx.recyclerview:recyclerview:1.3.2")
+    kapt("androidx.room:room-compiler:$room_version") //
 }
+

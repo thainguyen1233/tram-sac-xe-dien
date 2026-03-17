@@ -29,7 +29,14 @@ import java.net.URLEncoder
 import kotlin.random.Random
 import android.view.View
 
+import androidx.room.Room
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
+import com.example.carparkingsmart.data.AppDatabase
+import com.example.carparkingsmart.data.entity.ChargingStationEntity
+
 class MainActivity : AppCompatActivity() {
+    private lateinit var db: AppDatabase
 
     private lateinit var map: MapView
     private lateinit var searchBox: AutoCompleteTextView
@@ -126,11 +133,19 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        db = Room.databaseBuilder(
+            applicationContext,
+            AppDatabase::class.java,
+            "charging_db"
+        ).build()
+
+        val dao = db.chargingDao()
+
         Configuration.getInstance().userAgentValue = "CarParkingSmart/1.0 (Android)"
         Configuration.getInstance().load(this, getPreferences(MODE_PRIVATE))
 
         setContentView(R.layout.activity_main)
-
 
         initViews()
         setupMap()
@@ -140,11 +155,17 @@ class MainActivity : AppCompatActivity() {
         setupBottomSheet()
         setupCategoryChips()
 
-        // Khởi tạo bãi đỗ xe
-        initializeParkingLots()
-        displayParkingLots()
-        startParkingUpdates()
-        startProximityCheck()
+        //initializeParkingLots()
+        //displayParkingLots()
+        //startParkingUpdates()
+        //startProximityCheck()
+        lifecycleScope.launch {
+            val dao = db.chargingDao()
+
+            dao.updateAvailableSlots(1, 10)
+
+            loadChargingStationsFromDB()
+        }
     }
 
     private fun initViews() {
@@ -297,21 +318,18 @@ class MainActivity : AppCompatActivity() {
             parking.availableSpots < 10 -> "Sắp đầy (${parking.availableSpots}/${parking.totalSpots})"
             else -> "Còn ${parking.availableSpots}/${parking.totalSpots} chỗ"
         }
-        
+
+        tvPlaceCategory.text = if (parking.hasChargingStation) {
+            "⚡ Có trạm sạc (${parking.availableChargingSpots} /${parking.totalChargingSpots})"
+        } else {
+            "🅿️ Bãi đỗ xe (${parking.availableSpots}/${parking.totalSpots})"
+        }
         val chargingAvailability = if (parking.hasChargingStation) {
             when {
                 parking.availableChargingSpots == 0 -> " • ⚡ Hết chỗ sạc"
-                parking.availableChargingSpots < 3 -> " • ⚡ Còn ${parking.availableChargingSpots} chỗ sạc"
-                else -> " • ⚡ Còn ${parking.availableChargingSpots}/${parking.totalChargingSpots} chỗ sạc"
+                else -> " • ⚡ Còn ${parking.availableChargingSpots} / ${parking.totalChargingSpots} chỗ sạc"
             }
         } else ""
-
-        tvPlaceRating.text = availability + chargingAvailability
-        tvPlaceCategory.text = if (parking.hasChargingStation) {
-            "⚡ Trạm sạc xe điện • ${parking.totalSpots} chỗ tổng • ${parking.totalChargingSpots} cổng sạc"
-        } else {
-            "🅿️ Bãi đỗ xe • ${parking.totalSpots} chỗ tổng"
-        }
 
         myLocationOverlay?.myLocation?.let { myLoc ->
             val distance = calculateDistance(myLoc.latitude, myLoc.longitude, parking.lat, parking.lon)
@@ -1379,6 +1397,33 @@ class MainActivity : AppCompatActivity() {
             val hours = minutes / 60
             val mins = minutes % 60
             "$hours giờ $mins phút"
+        }
+    }
+
+    private suspend fun loadChargingStationsFromDB() {
+        val stations = db.chargingDao().getAllStations()
+
+        parkingLots.clear()
+
+        stations.forEach { station ->
+            parkingLots.add(
+                ParkingLot(
+                    id = station.id,
+                    name = station.name,
+                    lat = station.lat,
+                    lon = station.lon,
+                    totalSpots = station.totalSlots,
+                    availableSpots = station.availableSlots,
+                    address = station.address,
+                    hasChargingStation = true,
+                    totalChargingSpots = station.totalSlots,
+                    availableChargingSpots = station.availableSlots
+                )
+            )
+        }
+
+        runOnUiThread {
+            displayParkingLots()
         }
     }
 
