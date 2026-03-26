@@ -39,10 +39,18 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'corsheaders',
+    'rest_framework.authtoken',
     'charging_api',
 ]
 
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+    ],
+}
+
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -119,4 +127,5 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
-ALLOWED_HOSTS = ['11.11.150.33', 'localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['192.168.1.11', 'localhost', '127.0.0.1']
+CORS_ALLOW_ALL_ORIGINS = True
