@@ -1,10 +1,11 @@
-from rest_framework import viewsets, generics, status
+from rest_framework import viewsets, generics, status, permissions
 from rest_framework.response import Response
 from django.utils import timezone
-from .models import ChargingStation, Booking
-from .serializers import ChargingStationSerializer, BookingSerializer, UserSerializer
+from .models import ChargingStation, Booking, Ward
+from .serializers import ChargingStationSerializer, BookingSerializer, UserSerializer, WardSerializer
 
 class RegisterView(generics.CreateAPIView):
+    permission_classes = [permissions.AllowAny]
     serializer_class = UserSerializer
 
     def create(self, request, *args, **kwargs):
@@ -20,10 +21,24 @@ class RegisterView(generics.CreateAPIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class ChargingStationViewSet(viewsets.ModelViewSet):
+    permission_classes = [permissions.AllowAny]
     queryset = ChargingStation.objects.all()
     serializer_class = ChargingStationSerializer
 
+    def get_queryset(self):
+        queryset = ChargingStation.objects.all()
+        ward_id = self.request.query_params.get('ward_id')
+        if ward_id:
+            queryset = queryset.filter(ward_id=ward_id)
+        return queryset
+
+class WardViewSet(viewsets.ModelViewSet):
+    permission_classes = [permissions.AllowAny]
+    queryset = Ward.objects.all()
+    serializer_class = WardSerializer
+
 class BookingViewSet(viewsets.ModelViewSet):
+    permission_classes = [permissions.AllowAny]
     # Thêm dòng này vào để hết lỗi
     queryset = Booking.objects.all() 
     serializer_class = BookingSerializer

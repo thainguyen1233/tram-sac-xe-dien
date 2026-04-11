@@ -1,11 +1,12 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from rest_framework.authtoken.views import obtain_auth_token
-from .views import ChargingStationViewSet, BookingViewSet, RegisterView
+from .views import ChargingStationViewSet, BookingViewSet, RegisterView, WardViewSet
 
 router = DefaultRouter()
 router.register(r'stations', ChargingStationViewSet)
 router.register(r'bookings', BookingViewSet)
+router.register(r'wards', WardViewSet)
 
 urlpatterns = [
     path('', include(router.urls)), 

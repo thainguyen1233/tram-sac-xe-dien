@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hệ Thống Trạm Sạc Xe Điện Hà Nội</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="dark-mode">
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="logo">
+                <i data-lucide="zap" class="token-icon"></i>
+                <span>SafeCharge</span>
+            </div>
+            <nav class="ward-nav">
+                <h3>Các Phường</h3>
+                <ul id="ward-list">
+                    <!-- Wards will be populated here -->
+                </ul>
+            </nav>
+        </aside>
+
+        <main class="content">
+            <header>
+                <div class="header-info">
+                    <h1 id="selected-ward-title">Chọn Phường</h1>
+                    <p id="ward-stats">Vui lòng chọn một phường để xem các trạm sạc.</p>
+                </div>
+                <div class="user-profile">
+                    <i data-lucide="user"></i>
+                </div>
+            </header>
+
+            <section class="stats-section">
+                <div class="stat-card">
+                    <i data-lucide="users"></i>
+                    <div class="stat-info">
+                        <span class="label">Người đang sạc</span>
+                        <span class="value" id="occupancy-count">--</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <i data-lucide="battery-charging"></i>
+                    <div class="stat-info">
+                        <span class="label">Trạm trống</span>
+                        <span class="value" id="available-stations">--</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <i data-lucide="bar-chart-2"></i>
+                    <div class="stat-info">
+                        <span class="label">Mật độ khu vực</span>
+                        <span class="value" id="area-density">--</span>
+                    </div>
+                </div>
+            </section>
+
+            <section class="station-grid" id="station-grid">
+                <!-- Stations will be populated here -->
+            </section>
+        </main>
+    </div>
+
+    <!-- Booking Modal -->
+    <div id="booking-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-station-name">Chi tiết trạm sạc</h2>
+                <i data-lucide="x" class="close-btn" id="close-modal"></i>
+            </div>
+            <div class="modal-body">
+                <div class="booking-options">
+                    <button class="btn btn-primary" id="btn-sac-ngay">
+                        <i data-lucide="zap"></i> Sạc Ngay
+                    </button>
+                    <button class="btn btn-secondary" id="btn-dat-truoc">
+                        <i data-lucide="calendar"></i> Đặt Trước
+                    </button>
+                </div>
+                
+                <div id="date-time-picker" class="hidden">
+                    <label>Ngày đặt:</label>
+                    <input type="date" id="booking-date">
+                    <label>Giờ đặt:</label>
+                    <input type="time" id="booking-time">
+                </div>
+
+                <div id="qr-container" class="hidden">
+                    <h3>Mã QR của bạn</h3>
+                    <div class="qr-placeholder">
+                        <img id="qr-image" src="" alt="QR Code">
+                    </div>
+                    <p id="qr-text"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

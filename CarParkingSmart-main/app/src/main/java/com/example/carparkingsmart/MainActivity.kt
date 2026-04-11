@@ -100,35 +100,80 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var btnShowParkingList: Button
 
-    private fun setupWardChips(allStations: List<ParkingLot>) {
+    private val DEFAULT_LAT = 21.0285
+    private val DEFAULT_LON = 105.8542
+
+    private fun setupWardChips(wards: List<com.example.carparkingsmart.api.WardResponse>) {
         val chipGroup = findViewById<ChipGroup>(R.id.chip_group_wards)
         chipGroup.removeAllViews()
 
-        val wards = allStations.map { extractWard(it.address) }.distinct().sorted()
+        // Cập nhật danh sách gợi ý cho ô tìm kiếm
+        val stationSuggestions = parkingLots.map { PlaceInfo(it.lat, it.lon, it.name, it.address, "Trạm sạc") }
+        val wardSuggestions = wards.map { PlaceInfo(21.0285, 105.8542, "Phường ${it.name}", it.district, "Khu vực") }
+        
+        runOnUiThread {
+            suggestionsData.clear()
+            suggestionsData.addAll(stationSuggestions)
+            suggestionsData.addAll(wardSuggestions)
+            suggestionsAdapter.clear()
+            suggestionsAdapter.addAll(suggestionsData.map { it.name })
+            suggestionsAdapter.notifyDataSetChanged()
+        }
 
-        wards.forEach { wardName ->
-            // Sửa lỗi: Thêm 'this' vào Chip constructor
+        // Thêm chip "Tất cả"
+        val allChip = Chip(this).apply {
+            text = "Tất cả"
+            isCheckable = true
+            isChecked = true
+            chipBackgroundColor = ColorStateList.valueOf(Color.parseColor("#7c3aed")) // premium_purple
+            setTextColor(Color.WHITE)
+            setOnCheckedChangeListener { _, isChecked ->
+                if (isChecked) loadStationsByWard(null)
+            }
+        }
+        chipGroup.addView(allChip)
+
+        wards.forEach { ward ->
             val chip = Chip(this).apply {
-                text = wardName
+                text = ward.name
                 isCheckable = true
-
-                // Sửa lỗi 1: Dùng ColorStateList thay vì Resource ID để tránh lỗi green_500
-                chipBackgroundColor = android.content.res.ColorStateList.valueOf(android.graphics.Color.parseColor("#4CAF50"))
-
-                // Sửa lỗi 2: Ép kiểu màu trắng chuẩn Android
-                setTextColor(android.graphics.Color.WHITE)
+                chipBackgroundColor = ColorStateList.valueOf(Color.parseColor("#252538")) // semi-dark card
+                setTextColor(Color.parseColor("#A1A1AA")) // text_secondary
 
                 setOnCheckedChangeListener { _, isChecked ->
                     if (isChecked) {
-                        val filteredList = allStations.filter { it.address.contains(wardName, ignoreCase = true) }
-                        // Sửa lỗi 3: Đảm bảo hàm displayParkingLots nhận vào 1 List
-                        displayParkingLots(filteredList)
+                        chipBackgroundColor = ColorStateList.valueOf(Color.parseColor("#7c3aed"))
+                        setTextColor(Color.WHITE)
+                        loadStationsByWard(ward.id)
                     } else {
-                        displayParkingLots(allStations)
+                        chipBackgroundColor = ColorStateList.valueOf(Color.parseColor("#252538"))
+                        setTextColor(Color.parseColor("#A1A1AA"))
                     }
                 }
             }
             chipGroup.addView(chip)
+        }
+    }
+
+    private fun loadStationsByWard(wardId: Int?) {
+        lifecycleScope.launch {
+            try {
+                val stations = RetrofitClient.instance.getStations(wardId)
+                parkingLots.clear()
+                stations.forEach { s ->
+                    parkingLots.add(ParkingLot(
+                        s.id, s.name, s.latitude, s.longitude, 
+                        s.total_slots, s.available_slots, s.address,
+                        hasChargingStation = true,
+                        totalChargingSpots = s.total_slots,
+                        availableChargingSpots = s.available_slots,
+                        vehicle_density = s.vehicle_density
+                    ))
+                }
+                displayParkingLots()
+            } catch (e: Exception) {
+                Toast.makeText(this@MainActivity, "Lỗi tải trạm: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
@@ -171,7 +216,8 @@ class MainActivity : AppCompatActivity() {
         var isNearest: Boolean = false,
         val hasChargingStation: Boolean = false,
         val totalChargingSpots: Int = 0,
-        var availableChargingSpots: Int = 0
+        var availableChargingSpots: Int = 0,
+        val vehicle_density: String = "Thấp"
     )
     
     data class ChargingRequest(
@@ -209,7 +255,15 @@ class MainActivity : AppCompatActivity() {
         // setupCategoryChips() <-- Tạm thời comment dòng này lại nếu hàm này bên dưới vẫn đang gọi đến các chipRestaurant cũ
 
         // Tải dữ liệu từ Django
-        loadChargingStationsFromDB()
+        lifecycleScope.launch {
+            try {
+                val wards = RetrofitClient.instance.getWards()
+                setupWardChips(wards)
+                loadStationsByWard(null)
+            } catch (e: Exception) {
+                Toast.makeText(this@MainActivity, "Lỗi kết nối Server: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
+        }
     }
 
     private fun initViews() {
@@ -235,7 +289,7 @@ class MainActivity : AppCompatActivity() {
         btnFindMySpot = findViewById(R.id.btn_find_my_spot)
         btnShowParkingList = findViewById(R.id.btn_show_parking_list)
 
-        // XÓA HOẶC COMMENT CÁC DÒNG chipRestaurant, chipCafe... VÌ XML KHÔNG CÓ
+        // XÓA CÁC ĐƠN VỊ CŨ
     }
 
     private fun setupMap() {
@@ -339,19 +393,12 @@ class MainActivity : AppCompatActivity() {
         tvPlaceAddress.text = parking.address
 
         // 2. QUAN TRỌNG: Ghi đè chữ "Đang tải" bằng dữ liệu thực tế
-        if (parking.hasChargingStation) {
-            // Cập nhật vào TextView tv_place_rating
-            tvPlaceRating.text = "⚡ Còn ${parking.availableChargingSpots}/${parking.totalChargingSpots} chỗ sạc"
-            tvPlaceRating.setTextColor(android.graphics.Color.parseColor("#4CAF50")) // Màu xanh lá
+        val peopleCharging = parking.totalChargingSpots - parking.availableChargingSpots
+        // Hiển thị cả số người đang sạc và mật độ xe
+        tvPlaceRating.text = "⚡ Đang sạc: $peopleCharging • Còn ${parking.availableChargingSpots}/${parking.totalChargingSpots} cổng\n📊 Mật độ: ${parking.vehicle_density ?: "Thấp"}"
+        tvPlaceRating.setTextColor(android.graphics.Color.parseColor("#3b82f6")) // premium_blue
 
-            // Cập nhật category
-            tvPlaceCategory.text = "Trạm sạc xe điện"
-        } else {
-            tvPlaceRating.text = "🅿️ Còn ${parking.availableSpots}/${parking.totalSpots} chỗ"
-            tvPlaceRating.setTextColor(android.graphics.Color.parseColor("#757575")) // Màu xám
-
-            tvPlaceCategory.text = "Bãi đỗ xe thường"
-        }
+        tvPlaceCategory.text = "Trạm sạc xe điện"
 
         // 3. Tính toán khoảng cách
         myLocationOverlay?.myLocation?.let { myLoc ->
@@ -361,19 +408,90 @@ class MainActivity : AppCompatActivity() {
             tvPlaceDistance.text = "Bật GPS để xem khoảng cách"
         }
 
-        // 4. Cấu hình Bottom Sheet (Giữ thông báo hiện ra)
-        bottomSheetBehavior.peekHeight = 450 // Tăng nhẹ chiều cao để không bị che chữ
+        // 4. Cấu hình Bottom Sheet
+        bottomSheetBehavior.peekHeight = 500 
         bottomSheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
 
         // 5. Nút đặt chỗ
         btnBookParking.visibility = View.VISIBLE
         btnBookParking.setOnClickListener {
-            if (parking.hasChargingStation) {
-                showChargingStationDialog(parking)
-            } else {
-                bookParkingSpot(parking)
+            showBookingOptionsDialog(parking)
+        }
+    }
+
+    private fun showBookingOptionsDialog(parking: ParkingLot) {
+        val options = arrayOf("Sạc Ngay", "Đặt Trước (Hẹn giờ)", "Hủy")
+        androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle(parking.name)
+            .setItems(options) { _, which ->
+                when (which) {
+                    0 -> createRealBooking(parking, "Confirmed", null)
+                    1 -> showDateTimePicker(parking)
+                }
+            }
+            .show()
+    }
+
+    private fun showDateTimePicker(parking: ParkingLot) {
+        val calendar = java.util.Calendar.getInstance()
+        val datePickerDialog = android.app.DatePickerDialog(this, { _, year, month, dayOfMonth ->
+            val timePickerDialog = android.app.TimePickerDialog(this, { _, hourOfDay, minute ->
+                val scheduledTime = String.format("%04d-%02d-%02dT%02d:%02d:00Z", year, month + 1, dayOfMonth, hourOfDay, minute)
+                createRealBooking(parking, "Pending", scheduledTime)
+            }, calendar.get(java.util.Calendar.HOUR_OF_DAY), calendar.get(java.util.Calendar.MINUTE), true)
+            timePickerDialog.show()
+        }, calendar.get(java.util.Calendar.YEAR), calendar.get(java.util.Calendar.MONTH), calendar.get(java.util.Calendar.DAY_OF_MONTH))
+        datePickerDialog.show()
+    }
+
+    private fun createRealBooking(parking: ParkingLot, status: String, scheduledTime: String?) {
+        lifecycleScope.launch {
+            try {
+                val request = com.example.carparkingsmart.api.BookingRequest(
+                    station = parking.id,
+                    user_id = "ANDROID_USER_${Random.nextInt(1000)}",
+                    status = status,
+                    scheduled_time = scheduledTime
+                )
+                // GỠ BỎ TOKEN CỨNG - Backend giờ đã AllowAny cho demo
+                val response = RetrofitClient.instance.createBooking(null, request)
+                
+                runOnUiThread {
+                    showQRDialog(parking.name, response.qr_code_data, status)
+                    loadStationsByWard(null) // Refresh data
+                }
+            } catch (e: Exception) {
+                runOnUiThread {
+                    Toast.makeText(this@MainActivity, "Lỗi đặt chỗ: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
             }
         }
+    }
+
+    private fun showQRDialog(stationName: String, qrData: String, type: String) {
+        val qrUrl = "https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=$qrData"
+        
+        val message = if (type == "Confirmed") "Quét mã để sạc ngay!" else "Mã giữ chỗ sạc cho lịch hẹn của bạn."
+        
+        val imageView = ImageView(this).apply {
+            setPadding(60, 60, 60, 60)
+            layoutParams = LinearLayout.LayoutParams(800, 800)
+            setBackgroundColor(Color.WHITE) // Giữ nền trắng cho QR để dễ quét
+        }
+        
+        Thread {
+            try {
+                val bitmap = android.graphics.BitmapFactory.decodeStream(java.net.URL(qrUrl).openConnection().getInputStream())
+                runOnUiThread { imageView.setImageBitmap(bitmap) }
+            } catch (e: Exception) { e.printStackTrace() }
+        }.start()
+
+        androidx.appcompat.app.AlertDialog.Builder(this, androidx.appcompat.R.style.Theme_AppCompat_Dialog_Alert)
+            .setTitle("Mã QR Sạc Xe")
+            .setMessage(message)
+            .setView(imageView)
+            .setPositiveButton("Xong", null)
+            .show()
     }
 
     private fun startParkingUpdates() {
@@ -588,42 +706,41 @@ class MainActivity : AppCompatActivity() {
     }
     
     private fun findNearestChargingStation() {
-        myLocationOverlay?.myLocation?.let { myLoc ->
-            val chargingStations = parkingLots.filter { 
-                it.hasChargingStation && it.availableChargingSpots > 0 
-            }
+        val userLoc = myLocationOverlay?.myLocation ?: GeoPoint(DEFAULT_LAT, DEFAULT_LON)
+        
+        val chargingStations = parkingLots.filter { 
+            it.hasChargingStation && it.availableChargingSpots > 0 
+        }
+        
+        if (chargingStations.isEmpty()) {
+            Toast.makeText(this, "Không có trạm sạc nào còn chỗ trống", Toast.LENGTH_LONG).show()
+            showAllChargingStations()
+            return
+        }
+        
+        val nearestStation = chargingStations.minByOrNull { station ->
+            calculateDistance(userLoc.latitude, userLoc.longitude, station.lat, station.lon)
+        }
+        
+        nearestStation?.let { station ->
+            val distance = calculateDistance(userLoc.latitude, userLoc.longitude, station.lat, station.lon)
             
-            if (chargingStations.isEmpty()) {
-                Toast.makeText(this, "Không có trạm sạc nào còn chỗ trống", Toast.LENGTH_LONG).show()
-                
-                // Hiển thị tất cả trạm sạc (kể cả đầy)
-                showAllChargingStations()
-                return
-            }
+            currentNearestChargingStation = station
             
-            val nearestStation = chargingStations.minByOrNull { station ->
-                calculateDistance(myLoc.latitude, myLoc.longitude, station.lat, station.lon)
-            }
+            Toast.makeText(this,
+                "⚡ TRẠM SẠC GẦN NHẤT\n" +
+                "${station.name}\n" +
+                "Còn ${station.availableChargingSpots}/${station.totalChargingSpots} chỗ sạc\n" +
+                "Cách ${formatDistance(distance)}",
+                Toast.LENGTH_LONG).show()
             
-            nearestStation?.let { station ->
-                val distance = calculateDistance(myLoc.latitude, myLoc.longitude, station.lat, station.lon)
-                
-                currentNearestChargingStation = station
-                
-                Toast.makeText(this,
-                    "⚡ TRẠM SẠC GẦN NHẤT\n" +
-                    "${station.name}\n" +
-                    "Còn ${station.availableChargingSpots}/${station.totalChargingSpots} chỗ sạc\n" +
-                    "Cách ${formatDistance(distance)}",
-                    Toast.LENGTH_LONG).show()
-                
-                // Zoom đến trạm sạc
-                map.controller.animateTo(GeoPoint(station.lat, station.lon))
-                map.controller.setZoom(16.0)
-                
-                showParkingDetails(station)
-            }
-        } ?: Toast.makeText(this, "Bật GPS để tìm trạm sạc", Toast.LENGTH_SHORT).show()
+            map.controller.animateTo(GeoPoint(station.lat, station.lon))
+            map.controller.setZoom(16.0)
+            showParkingDetails(station)
+        }
+        if (myLocationOverlay?.myLocation == null) {
+            Toast.makeText(this, "Đang dùng vị trí mặc định (Hà Nội) vì GPS chưa sẵn sàng", Toast.LENGTH_SHORT).show()
+        }
     }
     
     private fun suggestAlternativeChargingStations(userLat: Double, userLon: Double, currentStation: ParkingLot) {
@@ -882,7 +999,9 @@ class MainActivity : AppCompatActivity() {
             }
             map.controller.setZoom(17.0)
         } ?: run {
-            Toast.makeText(this, "Đang tìm vị trí...", Toast.LENGTH_SHORT).show()
+            map.controller.animateTo(GeoPoint(21.0285, 105.8542))
+            map.controller.setZoom(15.0)
+            Toast.makeText(this, "Đang tìm vị trí của bạn...", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -1034,46 +1153,31 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun searchLocation(query: String) {
-        // Kiểm tra xem có phải tìm trạm sạc không
         val isChargingStationSearch = query.contains("sạc", ignoreCase = true) || 
                                       query.contains("điện", ignoreCase = true) ||
                                       query.contains("charging", ignoreCase = true)
         
-        // Tìm trong danh sách bãi đỗ xe trước
         val matchingParkingLots = parkingLots.filter { parking ->
             parking.name.contains(query, ignoreCase = true) ||
             parking.address.contains(query, ignoreCase = true)
         }
         
         if (matchingParkingLots.isNotEmpty()) {
-            // Tìm thấy bãi đỗ xe
             val parking = matchingParkingLots[0]
-            
             runOnUiThread {
-                // Zoom đến bãi đỗ xe
                 map.controller.animateTo(GeoPoint(parking.lat, parking.lon))
                 map.controller.setZoom(17.0)
-                
-                // Hiển thị thông tin
                 showParkingDetails(parking)
-                
-                Toast.makeText(this, 
-                    "Tìm thấy: ${parking.name}" + 
-                    if (parking.hasChargingStation) " ⚡ (Có trạm sạc)" else "",
-                    Toast.LENGTH_LONG).show()
+                Toast.makeText(this, "Tìm thấy: ${parking.name}" + if (parking.hasChargingStation) " ⚡" else "", Toast.LENGTH_LONG).show()
             }
             return
         }
         
-        // Nếu tìm "trạm sạc" hoặc "sạc xe điện"
         if (isChargingStationSearch) {
-            runOnUiThread {
-                findNearestChargingStation()
-            }
+            runOnUiThread { findNearestChargingStation() }
             return
         }
         
-        // Không tìm thấy trong danh sách → tìm trên mạng
         Toast.makeText(this, "Đang tìm kiếm...", Toast.LENGTH_SHORT).show()
 
         Thread {
@@ -1081,9 +1185,8 @@ class MainActivity : AppCompatActivity() {
                 val encoded = URLEncoder.encode(query, "UTF-8")
                 var urlString = "https://nominatim.openstreetmap.org/search?format=json&q=$encoded&countrycodes=vn&limit=1&addressdetails=1&accept-language=vi"
 
-                myLocationOverlay?.myLocation?.let { myLoc ->
-                    urlString += "&lat=${myLoc.latitude}&lon=${myLoc.longitude}"
-                }
+                val userLoc = myLocationOverlay?.myLocation ?: GeoPoint(DEFAULT_LAT, DEFAULT_LON)
+                urlString += "&lat=${userLoc.latitude}&lon=${userLoc.longitude}"
 
                 val url = URL(urlString)
                 val conn = url.openConnection() as HttpURLConnection
@@ -1094,37 +1197,20 @@ class MainActivity : AppCompatActivity() {
                 if (conn.responseCode == 200) {
                     val json = conn.inputStream.bufferedReader().readText()
                     val array = JSONArray(json)
-
                     if (array.length() > 0) {
                         val obj = array.getJSONObject(0)
                         val lat = obj.getDouble("lat")
                         val lon = obj.getDouble("lon")
                         val displayName = obj.getString("display_name")
-                        val name = if (obj.has("name") && obj.getString("name").isNotEmpty()) {
-                            obj.getString("name")
-                        } else {
-                            query
-                        }
-
-                        runOnUiThread {
-                            showMarkerAtLocation(lat, lon, name, displayName)
-                        }
+                        val name = if (obj.has("name") && obj.getString("name").isNotEmpty()) obj.getString("name") else query
+                        runOnUiThread { showMarkerAtLocation(lat, lon, name, displayName) }
                     } else {
-                        runOnUiThread {
-                            Toast.makeText(this, "Không tìm thấy: $query", Toast.LENGTH_LONG).show()
-                        }
-                    }
-                } else {
-                    runOnUiThread {
-                        Toast.makeText(this, "Lỗi kết nối: ${conn.responseCode}", Toast.LENGTH_SHORT).show()
+                        runOnUiThread { Toast.makeText(this, "Không tìm thấy: $query", Toast.LENGTH_LONG).show() }
                     }
                 }
                 conn.disconnect()
             } catch (e: Exception) {
                 e.printStackTrace()
-                runOnUiThread {
-                    Toast.makeText(this, "Lỗi: ${e.message}", Toast.LENGTH_SHORT).show()
-                }
             }
         }.start()
     }
@@ -1249,11 +1335,23 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showPlaceDetails(lat: Double, lon: Double, name: String, address: String, category: String = "") {
+        // Kiểm tra xem địa điểm này có phải là trạm sạc trong hệ thống không
+        val station = parkingLots.find { 
+            it.name.contains(name, ignoreCase = true) || 
+            (Math.abs(it.lat - lat) < 0.0001 && Math.abs(it.lon - lon) < 0.0001) 
+        }
+
+        if (station != null) {
+            showParkingDetails(station)
+            return
+        }
+
         currentPlace = PlaceInfo(lat, lon, name, address, category)
 
         tvPlaceName.text = name
         tvPlaceAddress.text = address
 
+        // Hiển thị rating giả lập cho địa điểm thường
         val rating = String.format("%.1f", 3.5 + Math.random() * 1.5)
         tvPlaceRating.text = "$rating ★"
         tvPlaceCategory.text = if (category.isNotEmpty()) category else "Địa điểm"
@@ -1271,11 +1369,11 @@ class MainActivity : AppCompatActivity() {
 
     private fun showDirections() {
         currentPlace?.let { place ->
-            myLocationOverlay?.myLocation?.let { myLoc ->
-                calculateRoute(myLoc.latitude, myLoc.longitude, place.lat, place.lon)
-            } ?: run {
-                Toast.makeText(this, "Không thể xác định vị trí hiện tại", Toast.LENGTH_SHORT).show()
+            val myLoc = myLocationOverlay?.myLocation ?: GeoPoint(21.0285, 105.8542)
+            if (myLocationOverlay?.myLocation == null) {
+                Toast.makeText(this, "Dùng vị trí giả định (Hà Nội) vì GPS chưa sẵn sàng", Toast.LENGTH_SHORT).show()
             }
+            calculateRoute(myLoc.latitude, myLoc.longitude, place.lat, place.lon)
         }
     }
 
@@ -1425,42 +1523,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun loadChargingStationsFromDB() {
-        lifecycleScope.launch {
-            try {
-                val apiStations = RetrofitClient.instance.getStations()
-
-                // Xóa cũ thêm mới an toàn
-                parkingLots.clear()
-
-                apiStations.forEach { station ->
-                    parkingLots.add(ParkingLot(
-                        id = station.id,
-                        name = station.name,
-                        lat = station.latitude,
-                        lon = station.longitude,
-                        totalSpots = station.total_slots ?: 0,
-                        availableSpots = station.available_slots ?: 0,
-                        address = station.address ?: "",
-                        hasChargingStation = true,
-                        totalChargingSpots = station.total_slots ?: 0,
-                        availableChargingSpots = station.available_slots ?: 0
-                    ))
-                }
-
-                // ĐƯA LÊN UI THREAD ĐỂ VẼ - KHÔNG SẼ BỊ OUT
-                runOnUiThread {
-                    if (parkingLots.isNotEmpty()) {
-                        displayParkingLots(parkingLots)
-                        setupWardChips(parkingLots)
-                    }
-                }
-
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        }
-    }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)

@@ -3,6 +3,14 @@ from django.utils import timezone
 from datetime import timedelta
 from django.core.exceptions import ValidationError
 
+class Ward(models.Model):
+    name = models.CharField(max_length=100, verbose_name="Phường/Xã")
+    district = models.CharField(max_length=100, default="Ba Đình", verbose_name="Quận/Huyện")
+    city = models.CharField(max_length=100, default="Hà Nội", verbose_name="Thành phố")
+
+    def __str__(self):
+        return f"{self.name}, {self.district}, {self.city}"
+
 class ChargingStation(models.Model):
     name = models.CharField(max_length=255, verbose_name="Tên trạm")
     address = models.TextField(verbose_name="Địa chỉ")
@@ -10,6 +18,8 @@ class ChargingStation(models.Model):
     longitude = models.DecimalField(max_digits=12, decimal_places=9, null=True, blank=True)
     total_slots = models.IntegerField(default=0)
     available_slots = models.IntegerField(default=0)
+    ward = models.ForeignKey(Ward, on_delete=models.SET_NULL, null=True, blank=True, related_name='stations')
+    vehicle_density = models.CharField(max_length=50, default="Thấp", verbose_name="Mật độ xe")
 
     def __str__(self):
         return self.name
@@ -27,6 +37,7 @@ class Booking(models.Model):
     booking_time = models.DateTimeField(auto_now_add=True)
     expiry_time = models.DateTimeField(null=True, blank=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Pending')
+    scheduled_time = models.DateTimeField(null=True, blank=True, verbose_name="Lịch hẹn")
     qr_code_data = models.TextField(null=True, blank=True)
     amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 

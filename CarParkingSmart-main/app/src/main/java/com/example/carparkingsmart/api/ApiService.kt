@@ -14,11 +14,14 @@ interface ApiService {
     suspend fun login(@Body credentials: LoginRequest): LoginResponse
 
     @GET("api/stations/")
-    suspend fun getStations(): List<StationResponse>
+    suspend fun getStations(@retrofit2.http.Query("ward_id") wardId: Int? = null): List<StationResponse>
+
+    @GET("api/wards/")
+    suspend fun getWards(): List<WardResponse>
 
     @POST("api/bookings/")
     suspend fun createBooking(
-        @Header("Authorization") token: String,
+        @Header("Authorization") token: String?,
         @Body booking: BookingRequest
     ): BookingResponse
 }

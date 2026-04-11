@@ -4,7 +4,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#E8F5E9">
+    android:background="@color/premium_bg">
 
     <!-- Bản đồ -->
     <org.osmdroid.views.MapView
@@ -19,7 +19,7 @@
         android:layout_margin="12dp"
         app:cardCornerRadius="28dp"
         app:cardElevation="8dp"
-        android:backgroundTint="#FFFFFF">
+        android:backgroundTint="@color/premium_card">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -27,7 +27,7 @@
             android:orientation="horizontal"
             android:padding="4dp"
             android:gravity="center_vertical"
-            android:background="@drawable/gradient_green_bg">
+            android:background="@drawable/gradient_premium_bg">
 
             <!-- Logo Trạm Sạc Xe Điện -->
             <ImageView
@@ -113,7 +113,7 @@
             android:layout_marginBottom="12dp"
             app:cardCornerRadius="28dp"
             app:cardElevation="6dp"
-            android:backgroundTint="#FFFFFF">
+            android:backgroundTint="@color/premium_card">
 
             <ImageButton
                 android:id="@+id/btn_layers"
@@ -122,7 +122,7 @@
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="Layers"
                 android:src="@android:drawable/ic_dialog_map"
-                app:tint="#4CAF50" />
+                app:tint="@color/premium_blue" />
         </com.google.android.material.card.MaterialCardView>
 
         <!-- Nút mở danh sách trạm sạc gần nhất -->
@@ -132,7 +132,7 @@
             android:layout_marginBottom="12dp"
             app:cardCornerRadius="28dp"
             app:cardElevation="6dp"
-            android:backgroundTint="#4CAF50">
+            android:backgroundTint="@color/premium_purple">
 
             <Button
                 android:id="@+id/btn_show_parking_list"
@@ -152,7 +152,7 @@
             android:layout_marginBottom="12dp"
             app:cardCornerRadius="28dp"
             app:cardElevation="6dp"
-            android:backgroundTint="#FFFFFF">
+            android:backgroundTint="@color/premium_card">
 
             <ImageButton
                 android:id="@+id/btn_my_location"
@@ -161,7 +161,7 @@
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="Vị trí của tôi"
                 android:src="@android:drawable/ic_menu_mylocation"
-                app:tint="#4CAF50" />
+                app:tint="@color/premium_blue" />
         </com.google.android.material.card.MaterialCardView>
 
         <!-- Nút mới: Lưu vị trí xe -->
@@ -190,7 +190,7 @@
             android:layout_height="56dp"
             app:cardCornerRadius="28dp"
             app:cardElevation="6dp"
-            android:backgroundTint="#81C784">
+            android:backgroundTint="#8b5cf6">
 
             <Button
                 android:id="@+id/btn_find_my_spot"
@@ -216,7 +216,7 @@
         android:contentDescription="Chỉ đường"
         android:src="@android:drawable/ic_menu_directions"
         app:tint="#FFFFFF"
-        app:backgroundTint="#4CAF50"
+        app:backgroundTint="@color/premium_purple"
         app:elevation="8dp"
         app:borderWidth="0dp" />
 
@@ -242,7 +242,7 @@
             android:textColor="#FFFFFF"
             android:textStyle="bold"
             android:textSize="16sp"
-            android:background="@drawable/gradient_green_bg"
+            android:background="@drawable/gradient_premium_bg"
             android:layout_marginHorizontal="16dp"
             android:layout_marginTop="8dp"
             android:elevation="4dp"
@@ -254,7 +254,7 @@
             android:layout_height="4dp"
             android:layout_gravity="center_horizontal"
             android:layout_marginBottom="16dp"
-            android:background="#81C784"
+            android:background="#8b5cf6"
             android:radius="2dp" />
 
         <!-- Header với nút đóng -->
@@ -268,7 +268,7 @@
                 android:layout_height="wrap_content"
                 android:text="⚡ Thông tin trạm sạc"
                 android:textSize="14sp"
-                android:textColor="#4CAF50"
+                android:textColor="@color/premium_blue"
                 android:textStyle="bold"
                 android:layout_centerVertical="true" />
 
@@ -280,7 +280,7 @@
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="Đóng"
                 android:src="@android:drawable/ic_menu_close_clear_cancel"
-                app:tint="#4CAF50" />
+                app:tint="@color/premium_blue" />
 
         </RelativeLayout>
 
@@ -291,7 +291,7 @@
             android:layout_height="wrap_content"
             android:text="Tên trạm sạc"
             android:textSize="22sp"
-            android:textColor="#1B5E20"
+            android:textColor="@color/text_primary"
             android:textStyle="bold"
             android:layout_marginBottom="4dp" />
 
@@ -309,7 +309,7 @@
                 android:layout_height="wrap_content"
                 android:text="Đang tải..."
                 android:textSize="14sp"
-                android:textColor="#4CAF50"
+                android:textColor="@color/premium_blue"
                 android:textStyle="bold" />
 
             <TextView
@@ -317,7 +317,7 @@
                 android:layout_height="wrap_content"
                 android:text=" • "
                 android:textSize="14sp"
-                android:textColor="#4CAF50" />
+                android:textColor="@color/premium_blue" />
 
             <TextView
                 android:id="@+id/tv_place_category"
@@ -325,7 +325,7 @@
                 android:layout_height="wrap_content"
                 android:text="Trạm sạc nhanh"
                 android:textSize="14sp"
-                android:textColor="#4CAF50" />
+                android:textColor="@color/premium_blue" />
 
         </LinearLayout>
 
@@ -341,7 +341,7 @@
                 android:layout_width="20dp"
                 android:layout_height="20dp"
                 android:src="@android:drawable/ic_dialog_map"
-                app:tint="#4CAF50" />
+                app:tint="@color/premium_blue" />
 
             <TextView
                 android:id="@+id/tv_place_address"
@@ -350,7 +350,7 @@
                 android:layout_height="wrap_content"
                 android:text="Địa chỉ"
                 android:textSize="14sp"
-                android:textColor="#2E7D32"
+                android:textColor="@color/text_secondary"
                 android:layout_marginStart="12dp" />
         </LinearLayout>
 
@@ -366,7 +366,7 @@
                 android:layout_width="20dp"
                 android:layout_height="20dp"
                 android:src="@android:drawable/ic_menu_mylocation"
-                app:tint="#4CAF50" />
+                app:tint="@color/premium_blue" />
 
             <TextView
                 android:id="@+id/tv_place_distance"
@@ -374,7 +374,7 @@
                 android:layout_height="wrap_content"
                 android:text="2.5 km từ vị trí của bạn"
                 android:textSize="14sp"
-                android:textColor="#4CAF50"
+                android:textColor="@color/premium_blue"
                 android:textStyle="bold"
                 android:layout_marginStart="12dp" />
         </LinearLayout>
@@ -401,14 +401,14 @@
                     android:layout_width="28dp"
                     android:layout_height="28dp"
                     android:src="@android:drawable/ic_menu_save"
-                    app:tint="#4CAF50" />
+                    app:tint="@color/premium_blue" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Lưu"
                     android:textSize="12sp"
-                    android:textColor="#2E7D32"
+                    android:textColor="@color/text_secondary"
                     android:layout_marginTop="4dp" />
             </LinearLayout>
 
@@ -426,14 +426,14 @@
                     android:layout_width="28dp"
                     android:layout_height="28dp"
                     android:src="@android:drawable/ic_menu_share"
-                    app:tint="#4CAF50" />
+                    app:tint="@color/premium_blue" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Chia sẻ"
                     android:textSize="12sp"
-                    android:textColor="#2E7D32"
+                    android:textColor="@color/text_secondary"
                     android:layout_marginTop="4dp" />
             </LinearLayout>
 
@@ -451,14 +451,14 @@
                     android:layout_width="28dp"
                     android:layout_height="28dp"
                     android:src="@android:drawable/ic_menu_search"
-                    app:tint="#4CAF50" />
+                    app:tint="@color/premium_blue" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Gần đây"
                     android:textSize="12sp"
-                    android:textColor="#2E7D32"
+                    android:textColor="@color/text_secondary"
                     android:layout_marginTop="4dp" />
             </LinearLayout>
 
@@ -473,7 +473,7 @@
             android:textSize="16sp"
             android:textColor="#FFFFFF"
             android:textStyle="bold"
-            android:background="@drawable/gradient_green_bg"
+            android:background="@drawable/gradient_premium_bg"
             android:textAllCaps="false"
             android:paddingStart="24dp"
             android:paddingEnd="24dp"

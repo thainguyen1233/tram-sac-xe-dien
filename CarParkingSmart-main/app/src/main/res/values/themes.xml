@@ -3,17 +3,18 @@
     <!-- Base application theme -->
     <style name="Theme.CarParkingSmart" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <!-- Primary brand color -->
-        <item name="colorPrimary">@color/ev_green_primary</item>
-        <item name="colorPrimaryVariant">@color/ev_green_dark</item>
+        <item name="colorPrimary">@color/premium_purple</item>
+        <item name="colorPrimaryVariant">@color/premium_blue</item>
         <item name="colorOnPrimary">@color/white</item>
         
         <!-- Secondary brand color -->
-        <item name="colorSecondary">@color/ev_green_light</item>
-        <item name="colorSecondaryVariant">@color/ev_green_lighter</item>
-        <item name="colorOnSecondary">@color/white</item>
+        <item name="colorSecondary">@color/premium_blue</item>
+        <item name="colorSecondaryVariant">@color/premium_blue</item>
+        <item name="colorOnSecondary">@color/black</item>
         
         <!-- Status bar color -->
-        <item name="android:statusBarColor">@color/ev_green_primary</item>
+        <item name="android:statusBarColor">@color/premium_bg</item>
+        <item name="android:windowLightStatusBar">false</item>
         
         <!-- Background color -->
         <item name="android:windowBackground">@color/ev_background</item>
@@ -22,7 +23,7 @@
     <!-- EV Charging Button Style -->
     <style name="EVChargingButton" parent="Widget.MaterialComponents.Button">
         <item name="android:textColor">@color/white</item>
-        <item name="backgroundTint">@color/ev_green_primary</item>
+        <item name="backgroundTint">@color/premium_purple</item>
         <item name="cornerRadius">28dp</item>
         <item name="android:textStyle">bold</item>
         <item name="android:textSize">16sp</item>
@@ -31,7 +32,7 @@
     
     <!-- EV Chip Style -->
     <style name="EVChipStyle" parent="Widget.MaterialComponents.Chip.Action">
-        <item name="chipBackgroundColor">@color/ev_green_primary</item>
+        <item name="chipBackgroundColor">@color/premium_purple</item>
         <item name="android:textColor">@color/white</item>
         <item name="chipCornerRadius">20dp</item>
         <item name="chipStrokeWidth">0dp</item>
@@ -42,7 +43,7 @@
     <style name="EVCardStyle" parent="Widget.MaterialComponents.CardView">
         <item name="cardCornerRadius">16dp</item>
         <item name="cardElevation">4dp</item>
-        <item name="strokeColor">@color/ev_green_primary</item>
+        <item name="strokeColor">@color/premium_blue</item>
         <item name="strokeWidth">2dp</item>
     </style>
     
@@ -70,7 +71,7 @@
     
     <!-- FAB Style -->
     <style name="EVFABStyle" parent="Widget.MaterialComponents.FloatingActionButton">
-        <item name="backgroundTint">@color/ev_green_primary</item>
+        <item name="backgroundTint">@color/premium_purple</item>
         <item name="tint">@color/white</item>
         <item name="elevation">8dp</item>
         <item name="borderWidth">0dp</item>
@@ -79,6 +80,6 @@
     <!-- Icon Button Style -->
     <style name="EVIconButton">
         <item name="android:background">?attr/selectableItemBackgroundBorderless</item>
-        <item name="tint">@color/ev_green_primary</item>
+        <item name="tint">@color/premium_blue</item>
     </style>
 </resources>
