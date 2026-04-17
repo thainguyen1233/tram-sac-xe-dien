@@ -35,21 +35,22 @@
                 android:layout_height="44dp"
                 android:padding="8dp"
                 android:src="@drawable/ic_ev_charging"
-                android:contentDescription="EV Charging Logo" />
+                android:contentDescription="EV Charging Logo"
+                app:tint="@color/premium_purple_light" />
 
             <AutoCompleteTextView
                 android:id="@+id/search_box"
                 android:layout_width="0dp"
                 android:layout_height="48dp"
                 android:layout_weight="1"
-                android:hint="Tìm trạm sạc gần bạn..."
+                android:hint="Tìm kiếm trạm sạc, địa điểm..."
                 android:imeOptions="actionSearch"
                 android:inputType="text"
                 android:importantForAutofill="no"
                 android:background="@null"
                 android:textSize="16sp"
                 android:textColor="#FFFFFF"
-                android:textColorHint="#E0F2F1"
+                android:textColorHint="#CBD5E1"
                 android:singleLine="true"
                 android:paddingStart="4dp"
                 android:paddingEnd="8dp"
@@ -233,21 +234,6 @@
         android:paddingBottom="20dp"
         app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
 
-        <!-- Nút đặt chỗ sạc -->
-        <Button
-            android:id="@+id/btn_book_parking"
-            android:layout_width="match_parent"
-            android:layout_height="56dp"
-            android:text="⚡ ĐẶT CHỖ SẠC NGAY"
-            android:textColor="#FFFFFF"
-            android:textStyle="bold"
-            android:textSize="16sp"
-            android:background="@drawable/gradient_premium_bg"
-            android:layout_marginHorizontal="16dp"
-            android:layout_marginTop="8dp"
-            android:elevation="4dp"
-            android:visibility="gone" />
-
         <!-- Handle Bar -->
         <View
             android:layout_width="40dp"
@@ -257,43 +243,54 @@
             android:background="#8b5cf6"
             android:radius="2dp" />
 
-        <!-- Header với nút đóng -->
-        <RelativeLayout
+        <!-- Header: Tên trạm sạc và nút đóng -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="12dp">
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="16dp">
 
             <TextView
-                android:layout_width="wrap_content"
+                android:id="@+id/tv_place_name"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="⚡ Thông tin trạm sạc"
-                android:textSize="14sp"
-                android:textColor="@color/premium_blue"
+                android:layout_weight="1"
+                android:text="Tên trạm sạc"
+                android:textSize="18sp"
+                android:textColor="@color/text_primary"
                 android:textStyle="bold"
-                android:layout_centerVertical="true" />
+                android:gravity="start" />
 
             <ImageButton
                 android:id="@+id/btn_close_sheet"
                 android:layout_width="32dp"
                 android:layout_height="32dp"
-                android:layout_alignParentEnd="true"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="Đóng"
                 android:src="@android:drawable/ic_menu_close_clear_cancel"
-                app:tint="@color/premium_blue" />
+                app:tint="@color/white" />
 
-        </RelativeLayout>
+        </LinearLayout>
 
-        <!-- Tên trạm sạc -->
-        <TextView
-            android:id="@+id/tv_place_name"
+        <!-- Nút đặt chỗ sạc (Hợp nhất Hierarchy) -->
+        <Button
+            android:id="@+id/btn_book_parking"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Tên trạm sạc"
-            android:textSize="22sp"
-            android:textColor="@color/text_primary"
+            android:layout_height="48dp"
+            android:text="Đặt chỗ ngay"
+            android:textColor="#FFFFFF"
             android:textStyle="bold"
-            android:layout_marginBottom="4dp" />
+            android:textSize="16sp"
+            android:background="@drawable/gradient_premium_bg"
+            android:drawableStart="@android:drawable/ic_menu_my_calendar"
+            android:drawablePadding="12dp"
+            android:paddingStart="24dp"
+            android:paddingEnd="24dp"
+            android:layout_marginBottom="24dp"
+            android:elevation="6dp"
+            android:textAllCaps="false"
+            android:visibility="gone" />
 
         <!-- Rating và category -->
         <LinearLayout
@@ -301,7 +298,7 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:layout_marginBottom="12dp">
+            android:layout_marginBottom="16dp">
 
             <TextView
                 android:id="@+id/tv_place_rating"
@@ -309,7 +306,7 @@
                 android:layout_height="wrap_content"
                 android:text="Đang tải..."
                 android:textSize="14sp"
-                android:textColor="@color/premium_blue"
+                android:textColor="@color/text_primary"
                 android:textStyle="bold" />
 
             <TextView
@@ -317,7 +314,7 @@
                 android:layout_height="wrap_content"
                 android:text=" • "
                 android:textSize="14sp"
-                android:textColor="@color/premium_blue" />
+                android:textColor="@color/text_secondary" />
 
             <TextView
                 android:id="@+id/tv_place_category"
@@ -325,7 +322,7 @@
                 android:layout_height="wrap_content"
                 android:text="Trạm sạc nhanh"
                 android:textSize="14sp"
-                android:textColor="@color/premium_blue" />
+                android:textColor="@color/text_primary" />
 
         </LinearLayout>
 
@@ -335,13 +332,13 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:layout_marginBottom="8dp">
+            android:layout_marginBottom="12dp">
 
             <ImageView
                 android:layout_width="20dp"
                 android:layout_height="20dp"
                 android:src="@android:drawable/ic_dialog_map"
-                app:tint="@color/premium_blue" />
+                app:tint="@color/premium_purple_light" />
 
             <TextView
                 android:id="@+id/tv_place_address"
@@ -360,13 +357,13 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:layout_marginBottom="20dp">
+            android:layout_marginBottom="24dp">
 
             <ImageView
                 android:layout_width="20dp"
                 android:layout_height="20dp"
                 android:src="@android:drawable/ic_menu_mylocation"
-                app:tint="@color/premium_blue" />
+                app:tint="@color/premium_purple_light" />
 
             <TextView
                 android:id="@+id/tv_place_distance"
@@ -374,18 +371,18 @@
                 android:layout_height="wrap_content"
                 android:text="2.5 km từ vị trí của bạn"
                 android:textSize="14sp"
-                android:textColor="@color/premium_blue"
+                android:textColor="@color/text_primary"
                 android:textStyle="bold"
                 android:layout_marginStart="12dp" />
         </LinearLayout>
 
-        <!-- Các nút hành động -->
+        <!-- Các nút hành động (Dàn đều không gian) -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:gravity="center"
-            android:layout_marginBottom="16dp">
+            android:paddingVertical="8dp"
+            android:layout_marginBottom="24dp">
 
             <LinearLayout
                 android:id="@+id/btn_save_place"
@@ -394,14 +391,13 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:gravity="center"
-                android:padding="8dp"
                 android:background="?attr/selectableItemBackground">
 
                 <ImageView
                     android:layout_width="28dp"
                     android:layout_height="28dp"
                     android:src="@android:drawable/ic_menu_save"
-                    app:tint="@color/premium_blue" />
+                    app:tint="@color/premium_purple_light" />
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -409,7 +405,7 @@
                     android:text="Lưu"
                     android:textSize="12sp"
                     android:textColor="@color/text_secondary"
-                    android:layout_marginTop="4dp" />
+                    android:layout_marginTop="6dp" />
             </LinearLayout>
 
             <LinearLayout
@@ -419,14 +415,13 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:gravity="center"
-                android:padding="8dp"
                 android:background="?attr/selectableItemBackground">
 
                 <ImageView
                     android:layout_width="28dp"
                     android:layout_height="28dp"
                     android:src="@android:drawable/ic_menu_share"
-                    app:tint="@color/premium_blue" />
+                    app:tint="@color/premium_purple_light" />
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -434,7 +429,7 @@
                     android:text="Chia sẻ"
                     android:textSize="12sp"
                     android:textColor="@color/text_secondary"
-                    android:layout_marginTop="4dp" />
+                    android:layout_marginTop="6dp" />
             </LinearLayout>
 
             <LinearLayout
@@ -444,14 +439,13 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:gravity="center"
-                android:padding="8dp"
                 android:background="?attr/selectableItemBackground">
 
                 <ImageView
                     android:layout_width="28dp"
                     android:layout_height="28dp"
                     android:src="@android:drawable/ic_menu_search"
-                    app:tint="@color/premium_blue" />
+                    app:tint="@color/premium_purple_light" />
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -459,26 +453,26 @@
                     android:text="Gần đây"
                     android:textSize="12sp"
                     android:textColor="@color/text_secondary"
-                    android:layout_marginTop="4dp" />
+                    android:layout_marginTop="6dp" />
             </LinearLayout>
 
         </LinearLayout>
 
-        <!-- Nút chỉ đường lớn -->
+        <!-- Nút chỉ đường (Secondary Outline) -->
         <Button
             android:id="@+id/btn_directions_bottom"
             android:layout_width="match_parent"
             android:layout_height="56dp"
-            android:text="🚗 Chỉ đường đến trạm sạc"
+            android:text="Chỉ đường đến trạm sạc"
             android:textSize="16sp"
-            android:textColor="#FFFFFF"
+            android:textColor="@color/premium_purple"
             android:textStyle="bold"
-            android:background="@drawable/gradient_premium_bg"
+            android:background="@drawable/btn_secondary_outline"
             android:textAllCaps="false"
             android:paddingStart="24dp"
             android:paddingEnd="24dp"
             android:gravity="center"
-            android:elevation="4dp" />
+            android:elevation="0dp" />
 
     </LinearLayout>
 

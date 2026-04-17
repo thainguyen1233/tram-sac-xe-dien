@@ -125,8 +125,8 @@ class MainActivity : AppCompatActivity() {
             text = "Tất cả"
             isCheckable = true
             isChecked = true
-            chipBackgroundColor = ColorStateList.valueOf(Color.parseColor("#7c3aed")) // premium_purple
-            setTextColor(Color.WHITE)
+            chipBackgroundColor = ColorStateList.valueOf(ContextCompat.getColor(this@MainActivity, R.color.chip_selected_bg))
+            setTextColor(ContextCompat.getColor(this@MainActivity, R.color.chip_selected_text))
             setOnCheckedChangeListener { _, isChecked ->
                 if (isChecked) loadStationsByWard(null)
             }
@@ -137,17 +137,17 @@ class MainActivity : AppCompatActivity() {
             val chip = Chip(this).apply {
                 text = ward.name
                 isCheckable = true
-                chipBackgroundColor = ColorStateList.valueOf(Color.parseColor("#252538")) // semi-dark card
-                setTextColor(Color.parseColor("#A1A1AA")) // text_secondary
+                chipBackgroundColor = ColorStateList.valueOf(ContextCompat.getColor(this@MainActivity, R.color.chip_unselected_bg))
+                setTextColor(ContextCompat.getColor(this@MainActivity, R.color.chip_unselected_text))
 
                 setOnCheckedChangeListener { _, isChecked ->
                     if (isChecked) {
-                        chipBackgroundColor = ColorStateList.valueOf(Color.parseColor("#7c3aed"))
-                        setTextColor(Color.WHITE)
+                        chipBackgroundColor = ColorStateList.valueOf(ContextCompat.getColor(this@MainActivity, R.color.chip_selected_bg))
+                        setTextColor(ContextCompat.getColor(this@MainActivity, R.color.chip_selected_text))
                         loadStationsByWard(ward.id)
                     } else {
-                        chipBackgroundColor = ColorStateList.valueOf(Color.parseColor("#252538"))
-                        setTextColor(Color.parseColor("#A1A1AA"))
+                        chipBackgroundColor = ColorStateList.valueOf(ContextCompat.getColor(this@MainActivity, R.color.chip_unselected_bg))
+                        setTextColor(ContextCompat.getColor(this@MainActivity, R.color.chip_unselected_text))
                     }
                 }
             }
@@ -396,9 +396,10 @@ class MainActivity : AppCompatActivity() {
         val peopleCharging = parking.totalChargingSpots - parking.availableChargingSpots
         // Hiển thị cả số người đang sạc và mật độ xe
         tvPlaceRating.text = "⚡ Đang sạc: $peopleCharging • Còn ${parking.availableChargingSpots}/${parking.totalChargingSpots} cổng\n📊 Mật độ: ${parking.vehicle_density ?: "Thấp"}"
-        tvPlaceRating.setTextColor(android.graphics.Color.parseColor("#3b82f6")) // premium_blue
+        tvPlaceRating.setTextColor(ContextCompat.getColor(this, R.color.text_primary))
 
         tvPlaceCategory.text = "Trạm sạc xe điện"
+        tvPlaceCategory.setTextColor(ContextCompat.getColor(this, R.color.text_primary))
 
         // 3. Tính toán khoảng cách
         myLocationOverlay?.myLocation?.let { myLoc ->

@@ -13,19 +13,28 @@
     <color name="premium_bg">#020208</color>
     <color name="premium_card">#121226</color>
     <color name="premium_purple">#8b5cf6</color>
+    <color name="premium_purple_light">#a78bfa</color>
     <color name="premium_blue">#3b82f6</color>
+    <color name="premium_blue_light">#60a5fa</color>
     <color name="text_primary">#f8fafc</color>
     <color name="text_secondary">#94a3b8</color>
+    <color name="text_contrast">#CBD5E1</color>
     <color name="accent_gradient_start">#818cf8</color>
     <color name="accent_gradient_center">#7c3aed</color>
     <color name="accent_gradient_end">#3b82f6</color>
     <color name="glass_bg">#CC121226</color>
     
+    <!-- Chip colors -->
+    <color name="chip_selected_bg">@color/premium_purple</color>
+    <color name="chip_selected_text">@color/white</color>
+    <color name="chip_unselected_bg">#F1F5F9</color>
+    <color name="chip_unselected_text">#475569</color>
+    
     <!-- Status colors -->
     <color name="ev_available">#10B981</color>
     <color name="ev_warning">#F59E0B</color>
     <color name="ev_error">#EF4444</color>
-
+    
     <!-- EV color aliases -->
     <color name="ev_background">@color/premium_bg</color>
     <color name="ev_green_primary">@color/premium_purple</color>
